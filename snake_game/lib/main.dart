@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
 
 void main() {
   runApp(const MainApp());
@@ -17,6 +18,16 @@ class _MainAppState extends State<MainApp> {
   int yPos = 1;
   int direction = 0; // 0123 for RBLU
   int velocity = 500;
+  var fruitXPos = Random().nextInt(10);
+  var fruitYPos = Random().nextInt(10);
+
+  // function changing the fruit's position
+  bool isFruitTouched() {
+    if (xPos == fruitXPos && yPos == fruitYPos) {
+      return true;
+    }
+    return false;
+  }
 
   // 0 c'est droite
   // 1 c'est bas
@@ -58,6 +69,17 @@ class _MainAppState extends State<MainApp> {
       });
       //continuousMovement.cancel() //to terminate this timer
     });
+    // ignore: unused_local_variable
+    Timer checksFruitCollision =
+        Timer.periodic(const Duration(milliseconds: 1), (arg) {
+      setState(() {
+        if (isFruitTouched()) {
+          velocity += 100;
+          fruitXPos = Random().nextInt(10);
+          fruitYPos = Random().nextInt(10);
+        }
+      });
+    });
     super.initState();
   }
 
@@ -69,7 +91,7 @@ class _MainAppState extends State<MainApp> {
       List<Widget> rowList = [];
       for (int i = 0; i < 10; i++) {
         rowList.add(
-          containerRow(context, i, xPos, yPos),
+          containerRow(context, i, xPos, yPos, fruitXPos, fruitYPos),
         );
       }
       return rowList;
@@ -105,6 +127,9 @@ class _MainAppState extends State<MainApp> {
                         setState(() {
                           direction = 3;
                         });
+                      },
+                      onLongPress: () {
+                        debugPrint("Up Button Long Press");
                       },
                       child: Material(
                         elevation: 3,
@@ -160,6 +185,9 @@ class _MainAppState extends State<MainApp> {
                       direction = 2;
                     });
                   },
+                  onLongPress: () {
+                    debugPrint("Left Button Long Press");
+                  },
                 ),
                 GestureDetector(
                   child: Material(
@@ -187,6 +215,9 @@ class _MainAppState extends State<MainApp> {
                       direction = 0;
                     });
                   },
+                  onLongPress: () {
+                    debugPrint("Right Button Long Press");
+                  },
                 ),
               ],
             ),
@@ -200,6 +231,9 @@ class _MainAppState extends State<MainApp> {
                     setState(() {
                       direction = 1;
                     });
+                  },
+                  onLongPress: () {
+                    debugPrint("Down Button Long Press");
                   },
                   child: Material(
                     elevation: 3,
@@ -256,12 +290,13 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-Widget containerRow(BuildContext context, int indexX, int xPos, int yPos) {
+Widget containerRow(BuildContext context, int indexX, int xPos, int yPos,
+    var fruitXPos, var fruitYPos) {
   generateColumn() {
     List<Widget> columnList = [];
     for (int i = 0; i < 10; i++) {
       columnList.add(
-        columnCase(context, indexX, i, xPos, yPos),
+        columnCase(context, indexX, i, xPos, yPos, fruitXPos, fruitYPos),
       );
     }
     return columnList;
@@ -275,8 +310,8 @@ Widget containerRow(BuildContext context, int indexX, int xPos, int yPos) {
   );
 }
 
-Widget columnCase(
-    BuildContext context, int iX, int iY, int snakeXPos, int snakeYPos) {
+Widget columnCase(BuildContext context, int iX, int iY, int snakeXPos,
+    int snakeYPos, var fruitXPos, var fruitYPos) {
   var size = MediaQuery.sizeOf(context);
   return Column(
     children: [
@@ -286,7 +321,9 @@ Widget columnCase(
         decoration: BoxDecoration(
           color: snakeXPos == iX && snakeYPos == iY
               ? Colors.green
-              : Colors.grey[200],
+              : fruitXPos == iX && fruitYPos == iY
+                  ? Colors.red
+                  : Colors.grey[200],
           border: Border(
             left: const BorderSide(color: Colors.black),
             right: (iY == 9)
