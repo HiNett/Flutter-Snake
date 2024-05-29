@@ -20,12 +20,21 @@ class _MainAppState extends State<MainApp> {
   int velocity = 500000;
   var fruitXPos = Random().nextInt(10);
   var fruitYPos = Random().nextInt(10);
+  var rareFruitXPos = Random().nextInt(10);
+  var rareFruitYPos = Random().nextInt(10);
   var score = 0;
   bool startClicked = false;
 
   // function changing the fruit's position
   bool isFruitTouched() {
     if (xPos == fruitXPos && yPos == fruitYPos) {
+      return true;
+    }
+    return false;
+  }
+
+  bool isRareFruitTouched(){
+    if (xPos == rareFruitXPos && yPos == rareFruitYPos){
       return true;
     }
     return false;
@@ -52,7 +61,6 @@ class _MainAppState extends State<MainApp> {
 
   bool gameStarted(bool startButtonClicked) {
     if (startButtonClicked) {
-      direction = 0; 
       return true;
     }
     return false;
@@ -79,6 +87,7 @@ class _MainAppState extends State<MainApp> {
       });
       //continuousMovement.cancel() //to terminate this timer
     });
+
     // ignore: unused_local_variable
     Timer checksFruitCollision =
         Timer.periodic(const Duration(microseconds: 1), (arg) {
@@ -89,8 +98,26 @@ class _MainAppState extends State<MainApp> {
           score += 1;
           velocity -= 20000;
         }
+        if (isRareFruitTouched()){
+          rareFruitXPos = -1;
+          rareFruitYPos = -1;
+          score += 5;
+        }
       });
     });
+
+    // ignore: unused_local_variable
+    Timer spawnRareFruit = Timer.periodic(const Duration(seconds: 30), (arg) {
+      setState(() {
+        rareFruitXPos = Random().nextInt(10);
+        rareFruitYPos = Random().nextInt(10);
+        if (rareFruitXPos != fruitXPos || rareFruitYPos != fruitYPos) {
+          rareFruitXPos = Random().nextInt(10);
+          rareFruitYPos = Random().nextInt(10);
+        }
+      });
+    });
+
     super.initState();
   }
 
@@ -102,7 +129,8 @@ class _MainAppState extends State<MainApp> {
       List<Widget> rowList = [];
       for (int i = 0; i < 10; i++) {
         rowList.add(
-          containerRow(context, i, xPos, yPos, fruitXPos, fruitYPos),
+          containerRow(context, i, xPos, yPos, fruitXPos, fruitYPos,
+              rareFruitXPos, rareFruitYPos),
         );
       }
       return rowList;
@@ -113,7 +141,7 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(
-            "Algogo",
+            "AlgogoLizard",
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -130,7 +158,7 @@ class _MainAppState extends State<MainApp> {
                 Container(
                   margin: const EdgeInsets.only(right: 10),
                   child: Text(
-                    'Your score: $score',
+                    'Score: $score',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -296,8 +324,8 @@ class _MainAppState extends State<MainApp> {
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
+                        direction = 0;
                         startClicked = true;
-                 
                       });
                     },
                     child: Container(
@@ -326,12 +354,13 @@ class _MainAppState extends State<MainApp> {
 }
 
 Widget containerRow(BuildContext context, int indexX, int xPos, int yPos,
-    var fruitXPos, var fruitYPos) {
+    var fruitXPos, var fruitYPos, var rareFruitXPos, var rareFruitYPos) {
   generateColumn() {
     List<Widget> columnList = [];
     for (int i = 0; i < 10; i++) {
       columnList.add(
-        columnCase(context, indexX, i, xPos, yPos, fruitXPos, fruitYPos),
+        columnCase(context, indexX, i, xPos, yPos, fruitXPos, fruitYPos,
+            rareFruitXPos, rareFruitYPos),
       );
     }
     return columnList;
@@ -345,8 +374,16 @@ Widget containerRow(BuildContext context, int indexX, int xPos, int yPos,
   );
 }
 
-Widget columnCase(BuildContext context, int iX, int iY, int snakeXPos,
-    int snakeYPos, var fruitXPos, var fruitYPos) {
+Widget columnCase(
+    BuildContext context,
+    int iX,
+    int iY,
+    int snakeXPos,
+    int snakeYPos,
+    var fruitXPos,
+    var fruitYPos,
+    var rareFruitXPos,
+    var rareFruitYPos) {
   var size = MediaQuery.sizeOf(context);
   return Column(
     children: [
@@ -358,7 +395,9 @@ Widget columnCase(BuildContext context, int iX, int iY, int snakeXPos,
               ? Colors.green
               : fruitXPos == iX && fruitYPos == iY
                   ? Colors.red
-                  : Colors.grey[200],
+                  : rareFruitXPos == iX && rareFruitYPos == iY
+                      ? Colors.orangeAccent
+                      : Colors.grey[200],
           border: Border(
             left: const BorderSide(color: Colors.black),
             right: (iY == 9)
