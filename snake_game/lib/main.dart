@@ -80,19 +80,20 @@ class _MainAppState extends State<MainApp> {
       setState(() {
         if (!isWallCollision() && gameStarted(startClicked)) {
           direction == 0
-              ? yPos++
+              ? yPos[0]++
               : direction == 1
-                  ? xPos++
+                  ? xPos[0]++
                   : direction == 2
-                      ? yPos--
+                      ? yPos[0]--
                       : direction == 3
-                          ? xPos--
+                          ? xPos[0]--
                           : null;
-        if (isFruitTouched()) {
-          velocity -= 20000;
-        }
-        if (isWallCollision()){
-          velocity = startVelocity;
+          if (isFruitTouched()) {
+            velocity -= 20000;
+          }
+          if (isWallCollision()) {
+            velocity = startVelocity;
+          }
         }
       });
       //continuousMovement.cancel() //to terminate this timer
@@ -107,7 +108,7 @@ class _MainAppState extends State<MainApp> {
           fruitYPos = Random().nextInt(10);
           score += 1;
         }
-        if (isRareFruitTouched()){
+        if (isRareFruitTouched()) {
           rareFruitXPos = -1;
           rareFruitYPos = -1;
           score += 5;
