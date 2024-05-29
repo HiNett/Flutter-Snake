@@ -20,6 +20,7 @@ class _MainAppState extends State<MainApp> {
   int velocity = 500;
   var fruitXPos = Random().nextInt(10);
   var fruitYPos = Random().nextInt(10);
+  var score = 0;
 
   // function changing the fruit's position
   bool isFruitTouched() {
@@ -74,9 +75,9 @@ class _MainAppState extends State<MainApp> {
         Timer.periodic(const Duration(milliseconds: 1), (arg) {
       setState(() {
         if (isFruitTouched()) {
-          velocity += 100;
           fruitXPos = Random().nextInt(10);
           fruitYPos = Random().nextInt(10);
+          score += 1; 
         }
       });
     });
@@ -113,7 +114,25 @@ class _MainAppState extends State<MainApp> {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(children: [...generateRow()]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  child: Text('Your score: $score',
+                  style: TextStyle(
+                    
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[900],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(children: [...generateRow()]
+            
+            ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
