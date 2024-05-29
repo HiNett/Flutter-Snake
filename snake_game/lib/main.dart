@@ -14,27 +14,31 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  int xPos = 5;
-  int yPos = 1;
+  List<int> startXPos = [5];
+  List<int> startYPos = [1];
+  List<int> xPos = [5];
+  List<int> yPos = [1];
   int direction = 0; // 0123 for RBLU
   int velocity = 500000;
+  final int startVelocity = 500000;
   var fruitXPos = Random().nextInt(10);
   var fruitYPos = Random().nextInt(10);
   var rareFruitXPos = Random().nextInt(10);
   var rareFruitYPos = Random().nextInt(10);
   var score = 0;
+  var highScore = 0;
   bool startClicked = false;
 
   // function changing the fruit's position
   bool isFruitTouched() {
-    if (xPos == fruitXPos && yPos == fruitYPos) {
+    if (xPos[0] == fruitXPos && yPos[0] == fruitYPos) {
       return true;
     }
     return false;
   }
 
-  bool isRareFruitTouched(){
-    if (xPos == rareFruitXPos && yPos == rareFruitYPos){
+  bool isRareFruitTouched() {
+    if (xPos[0] == rareFruitXPos && yPos[0] == rareFruitYPos) {
       return true;
     }
     return false;
@@ -46,13 +50,10 @@ class _MainAppState extends State<MainApp> {
   // 3 c'est haut
   // variable that tells if the head of the snake collides to a wall
   bool isWallCollision() {
-    if ((yPos <= 8 && direction == 0) ||
-        (yPos >= 1 && direction == 2) ||
-        ((yPos <= 8 || yPos >= 1) && xPos >= 1 && direction == 3) ||
-        ((yPos <= 8 || yPos >= 1) && xPos <= 8 && direction == 1)) {
-      print('Y POS : $yPos');
-      print('X POS : $xPos');
-      print('Direction : $direction');
+    if ((yPos[0] <= 9 && direction == 0) ||
+        (yPos[0] >= 0 && direction == 2) ||
+        ((yPos[0] <= 9 || yPos[0] >= 0) && xPos[0] >= 0 && direction == 3) ||
+        ((yPos[0] <= 9 || yPos[0] >= 0) && xPos[0] <= 9 && direction == 1)) {
       return false;
     } else {
       return true;
@@ -64,6 +65,10 @@ class _MainAppState extends State<MainApp> {
       return true;
     }
     return false;
+  }
+
+  void scoreReset() {
+    score = 0;
   }
 
   @override
@@ -83,6 +88,11 @@ class _MainAppState extends State<MainApp> {
                       : direction == 3
                           ? xPos--
                           : null;
+        if (isFruitTouched()) {
+          velocity -= 20000;
+        }
+        if (isWallCollision()){
+          velocity = startVelocity;
         }
       });
       //continuousMovement.cancel() //to terminate this timer
@@ -90,13 +100,12 @@ class _MainAppState extends State<MainApp> {
 
     // ignore: unused_local_variable
     Timer checksFruitCollision =
-        Timer.periodic(const Duration(microseconds: 1), (arg) {
+        Timer.periodic(const Duration(microseconds: 5), (arg) {
       setState(() {
         if (isFruitTouched()) {
           fruitXPos = Random().nextInt(10);
           fruitYPos = Random().nextInt(10);
           score += 1;
-          velocity -= 20000;
         }
         if (isRareFruitTouched()){
           rareFruitXPos = -1;
@@ -107,13 +116,46 @@ class _MainAppState extends State<MainApp> {
     });
 
     // ignore: unused_local_variable
-    Timer spawnRareFruit = Timer.periodic(const Duration(seconds: 30), (arg) {
+    Timer checksWallCollision =
+        Timer.periodic(const Duration(microseconds: 1), (arg) {
       setState(() {
-        rareFruitXPos = Random().nextInt(10);
-        rareFruitYPos = Random().nextInt(10);
-        if (rareFruitXPos != fruitXPos || rareFruitYPos != fruitYPos) {
+        if (isWallCollision()) {
+          // xPos.clear();
+          // yPos.clear();
+          if (highScore < score) {
+            highScore = score;
+          }
+          scoreReset();
+          xPos[0] = startXPos[0];
+          yPos[0] = startYPos[0];
+          direction = 0;
+          startClicked = false;
+          fruitXPos = Random().nextInt(10);
+          fruitYPos = Random().nextInt(10);
           rareFruitXPos = Random().nextInt(10);
           rareFruitYPos = Random().nextInt(10);
+        }
+      });
+      //continuousMovement.cancel() //to terminate this timer
+    });
+
+    // ignore: unused_local_variable
+    Timer spawnRareFruit = Timer.periodic(const Duration(seconds: 30), (arg) {
+      setState(() {
+        var previousRareFruitXPos = rareFruitXPos;
+        var previousRareFruitYPos = rareFruitYPos;
+        if (startClicked) {
+          rareFruitXPos = Random().nextInt(10);
+          rareFruitYPos = Random().nextInt(10);
+          if (!((0 <= previousRareFruitXPos && previousRareFruitXPos >= 9) ||
+              (0 <= previousRareFruitYPos && previousRareFruitYPos >= 9))) {
+            rareFruitXPos = previousRareFruitXPos;
+            rareFruitYPos = previousRareFruitYPos;
+          }
+          if (rareFruitXPos != fruitXPos || rareFruitYPos != fruitYPos) {
+            rareFruitXPos = Random().nextInt(10);
+            rareFruitYPos = Random().nextInt(10);
+          }
         }
       });
     });
@@ -153,7 +195,7 @@ class _MainAppState extends State<MainApp> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Container(
                   margin: const EdgeInsets.only(right: 10),
@@ -169,6 +211,52 @@ class _MainAppState extends State<MainApp> {
               ],
             ),
             Column(children: [...generateRow()]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(left: 10),
+                  child: Text(
+                    'High score: $highScore',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900],
+                    ),
+                  ),
+                ),
+                Material(
+                  color: Color.fromARGB(0, 0, 0, 0),
+                  elevation: 3,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(20),
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        startClicked == true
+                            ? startClicked = false
+                            : startClicked = true;
+                      });
+                    },
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 205, 205, 238),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(10),
+                        ),
+                      ),
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        startClicked ? "Pause" : "Start",
+                        style: TextStyle(color: Colors.lightBlue),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -180,11 +268,10 @@ class _MainAppState extends State<MainApp> {
                       onTap: () {
                         debugPrint("Up Button");
                         setState(() {
-                          direction = 3;
+                          if (startClicked) {
+                            direction = 3;
+                          }
                         });
-                      },
-                      onLongPress: () {
-                        debugPrint("Up Button Long Press");
                       },
                       child: Material(
                         elevation: 3,
@@ -237,11 +324,10 @@ class _MainAppState extends State<MainApp> {
                   onTap: () {
                     debugPrint("Left Button");
                     setState(() {
-                      direction = 2;
+                      if (startClicked) {
+                        direction = 2;
+                      }
                     });
-                  },
-                  onLongPress: () {
-                    debugPrint("Left Button Long Press");
                   },
                 ),
                 GestureDetector(
@@ -267,11 +353,10 @@ class _MainAppState extends State<MainApp> {
                   onTap: () {
                     debugPrint("Right Button");
                     setState(() {
-                      direction = 0;
+                      if (startClicked) {
+                        direction = 0;
+                      }
                     });
-                  },
-                  onLongPress: () {
-                    debugPrint("Right Button Long Press");
                   },
                 ),
               ],
@@ -284,11 +369,10 @@ class _MainAppState extends State<MainApp> {
                   onTap: () {
                     debugPrint("Down Button");
                     setState(() {
-                      direction = 1;
+                      if (startClicked) {
+                        direction = 1;
+                      }
                     });
-                  },
-                  onLongPress: () {
-                    debugPrint("Down Button Long Press");
                   },
                   child: Material(
                     elevation: 3,
@@ -312,40 +396,6 @@ class _MainAppState extends State<MainApp> {
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Material(
-                  color: Color.fromARGB(0, 0, 0, 0),
-                  elevation: 3,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(20),
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        direction = 0;
-                        startClicked = true;
-                      });
-                    },
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 205, 205, 238),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(10),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(bottom: 5),
-                      padding: const EdgeInsets.all(10),
-                      child: const Text(
-                        "Start",
-                        style: TextStyle(color: Colors.lightBlue),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -353,8 +403,15 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-Widget containerRow(BuildContext context, int indexX, int xPos, int yPos,
-    var fruitXPos, var fruitYPos, var rareFruitXPos, var rareFruitYPos) {
+Widget containerRow(
+    BuildContext context,
+    int indexX,
+    List<int> xPos,
+    List<int> yPos,
+    var fruitXPos,
+    var fruitYPos,
+    var rareFruitXPos,
+    var rareFruitYPos) {
   generateColumn() {
     List<Widget> columnList = [];
     for (int i = 0; i < 10; i++) {
@@ -378,8 +435,8 @@ Widget columnCase(
     BuildContext context,
     int iX,
     int iY,
-    int snakeXPos,
-    int snakeYPos,
+    List<int> snakeXPos,
+    List<int> snakeYPos,
     var fruitXPos,
     var fruitYPos,
     var rareFruitXPos,
@@ -391,7 +448,7 @@ Widget columnCase(
         width: size.width * 0.09,
         height: size.width * 0.09,
         decoration: BoxDecoration(
-          color: snakeXPos == iX && snakeYPos == iY
+          color: snakeXPos[0] == iX && snakeYPos[0] == iY
               ? Colors.green
               : fruitXPos == iX && fruitYPos == iY
                   ? Colors.red
