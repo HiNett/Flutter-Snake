@@ -18,19 +18,31 @@ class _MainAppState extends State<MainApp> {
   int direction = 0; // 0123 for RBLU
   int velocity = 500;
 
+  // 0 c'est droite
+  // 1 c'est bas
+  // 2 c'est gauche
+  // 3 c'est haut
   // variable that tells if the head of the snake collides to a wall
   bool isWallCollision() {
-    if (xPos <= 0 || xPos >= 9 || yPos <= 0 || yPos >= 9) {
+    if ((yPos <= 8 && direction == 0) ||
+        (yPos >= 1 && direction == 2) ||
+        ((yPos <= 8 || yPos >= 1) && xPos >= 1 && direction == 3) ||
+        ((yPos <= 8 || yPos >= 1) && xPos <= 8 && direction == 1)) {
+      print('Y POS : $yPos');
+      print('X POS : $xPos');
+      print('Direction : $direction');
+      return false;
+    } else {
       return true;
     }
-    return false;
   }
 
   @override
   void initState() {
     // moves the snake as long as it doesn't collide to a wall (cannot move anymore when it touches a wall though :) )
     // ignore: unused_local_variable
-    Timer continuousMovement = Timer.periodic(Duration(milliseconds: velocity), (arg) {
+    Timer continuousMovement =
+        Timer.periodic(Duration(milliseconds: velocity), (arg) {
       setState(() {
         if (!isWallCollision()) {
           direction == 0
