@@ -17,10 +17,11 @@ class _MainAppState extends State<MainApp> {
   int xPos = 5;
   int yPos = 1;
   int direction = 0; // 0123 for RBLU
-  int velocity = 500;
+  int velocity = 500000;
   var fruitXPos = Random().nextInt(10);
   var fruitYPos = Random().nextInt(10);
   var score = 0;
+  bool startClicked = false;
 
   // function changing the fruit's position
   bool isFruitTouched() {
@@ -49,14 +50,22 @@ class _MainAppState extends State<MainApp> {
     }
   }
 
+  bool gameStarted(bool startButtonClicked) {
+    if (startButtonClicked) {
+      direction = 0; 
+      return true;
+    }
+    return false;
+  }
+
   @override
   void initState() {
     // moves the snake as long as it doesn't collide to a wall (cannot move anymore when it touches a wall though :) )
     // ignore: unused_local_variable
     Timer continuousMovement =
-        Timer.periodic(Duration(milliseconds: velocity), (arg) {
+        Timer.periodic(Duration(microseconds: velocity), (arg) {
       setState(() {
-        if (!isWallCollision()) {
+        if (!isWallCollision() && gameStarted(startClicked)) {
           direction == 0
               ? yPos++
               : direction == 1
@@ -72,12 +81,13 @@ class _MainAppState extends State<MainApp> {
     });
     // ignore: unused_local_variable
     Timer checksFruitCollision =
-        Timer.periodic(const Duration(milliseconds: 1), (arg) {
+        Timer.periodic(const Duration(microseconds: 1), (arg) {
       setState(() {
         if (isFruitTouched()) {
           fruitXPos = Random().nextInt(10);
           fruitYPos = Random().nextInt(10);
-          score += 1; 
+          score += 1;
+          velocity -= 20000;
         }
       });
     });
@@ -119,20 +129,18 @@ class _MainAppState extends State<MainApp> {
               children: [
                 Container(
                   margin: const EdgeInsets.only(right: 10),
-                  child: Text('Your score: $score',
-                  style: TextStyle(
-                    
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[900],
+                  child: Text(
+                    'Your score: $score',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900],
                     ),
                   ),
                 ),
               ],
             ),
-            Column(children: [...generateRow()]
-            
-            ),
+            Column(children: [...generateRow()]),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -285,18 +293,26 @@ class _MainAppState extends State<MainApp> {
                   borderRadius: const BorderRadius.all(
                     Radius.circular(20),
                   ),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color.fromARGB(255, 205, 205, 238),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        startClicked = true;
+                 
+                      });
+                    },
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 205, 205, 238),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(10),
+                        ),
                       ),
-                    ),
-                    margin: const EdgeInsets.only(bottom: 5),
-                    padding: const EdgeInsets.all(10),
-                    child: const Text(
-                      "Start",
-                      style: TextStyle(color: Colors.lightBlue),
+                      margin: const EdgeInsets.only(bottom: 5),
+                      padding: const EdgeInsets.all(10),
+                      child: const Text(
+                        "Start",
+                        style: TextStyle(color: Colors.lightBlue),
+                      ),
                     ),
                   ),
                 ),
